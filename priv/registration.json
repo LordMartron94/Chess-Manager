@@ -1,0 +1,20 @@
+{
+  "requester_id": "eae22950-7150-40a8-8f0a-28eb23faf71a",
+  "payload": {
+    "action": "register",
+    "args": [
+      {
+        "type": "string",
+        "value": "ChessCoach.ChessManager"
+      },
+      {
+        "type": "string",
+        "value": "0.0.0"
+      },
+      {
+        "type": "list",
+        "value": "[]"
+      }
+    ]
+  }
+}

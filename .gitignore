@@ -15,3 +15,5 @@ erl_crash.dump
 # Personal
 .vale-styles/
 .vale.ini
+
+*.iml

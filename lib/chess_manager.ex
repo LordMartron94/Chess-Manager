@@ -1,18 +1,16 @@
 defmodule ChessManager do
   @moduledoc """
-  Documentation for `ChessManager`.
+  Main module.
   """
 
-  @doc """
-  Hello world.
+  def start(_type, _args) do
+    IO.puts("Starting ChessManager...")
+    test()
+    {:ok, self()}
+  end
 
-  ## Examples
-
-      iex> ChessManager.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def test() do
+    IO.puts "Testing ChessManager module"
+    ComponentRegistration.register()
   end
 end
