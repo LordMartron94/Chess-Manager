@@ -1,5 +1,5 @@
 defmodule TCPClient do
-  def start(host, port, _shutdown_listener_pid) do
+  def start(host, port) do
     case :gen_tcp.connect(host, port, [:binary, active: false]) do
       {:ok, socket} ->
         IO.puts "Connected to #{host}:#{port}"
@@ -16,41 +16,35 @@ defmodule TCPClient do
     IO.puts "Connection closed"
   end
 
-  def send_message(socket, data, delimiter) do
-    bytes = JSONHandler.to_bytes(data, delimiter)
+  def send_request(socket, request_data, delimiter) do
+    bytes = JSONHandler.to_bytes(request_data, delimiter)
     IO.puts("Sending message: #{bytes}")
     :gen_tcp.send(socket, bytes)
     end
 
-  def read_loop(socket, delimiter) do
+  def read_loop(socket, delimiter, shutdown_listener_pid) do
     # State for accumulating data and the message queue
     state = %{buffer: <<>>, queue: :queue.new()}
 
-    read_loop(socket, delimiter, state)
+    read_loop(socket, delimiter, state, &MessageProcessor.process_message/2, shutdown_listener_pid)
   end
 
-  defp read_loop(socket, delimiter, state) do
+  defp read_loop(socket, delimiter, state, message_processor, shutdown_listener_pid) do
     case :gen_tcp.recv(socket, 0) do
       {:ok, data} ->
-        # Add new data to the buffer
         new_buffer = state.buffer <> data
 
-        # Split messages based on the delimiter
         {messages, remaining_buffer} = extract_messages(new_buffer, delimiter, [])
 
-        # Enqueue the extracted messages
         new_queue = Enum.reduce(messages, state.queue, fn message, queue ->
           :queue.in(message, queue)
         end)
 
-        # Process messages from the queue with acknowledgement
-        {new_queue, processed_count} = process_messages(new_queue, 0)
+        {new_queue, processed_count} = process_messages(new_queue, 0, message_processor, shutdown_listener_pid)
 
-        # Print the number of processed messages (optional)
         IO.puts("Processed #{processed_count} new messages.")
 
-        # Continue the loop with the remaining buffer and updated queue
-        read_loop(socket, delimiter, %{buffer: remaining_buffer, queue: new_queue})
+        read_loop(socket, delimiter, %{buffer: remaining_buffer, queue: new_queue}, message_processor, shutdown_listener_pid)
 
       {:error, reason} ->
         IO.puts("Error receiving data: #{reason}")
@@ -66,13 +60,15 @@ defmodule TCPClient do
     end
   end
 
-  defp process_messages(queue, processed_count) do
+  defp process_messages(queue, processed_count, message_processor, shutdown_listener_pid) do
     case :queue.out(queue) do
       {{:value, message}, new_queue} ->
-        IO.puts("Processing message: #{inspect(message)}")
-        process_messages(new_queue, processed_count + 1) # Increment count
+        processed_message = MessageHandler.decode_message(message)
+        message_processor.(processed_message, shutdown_listener_pid)
+
+        process_messages(new_queue, processed_count + 1, message_processor, shutdown_listener_pid)
       _ ->
-        {queue, processed_count}  # Return the queue and count
+        {queue, processed_count}
     end
   end
 end

@@ -1,22 +1,22 @@
 defmodule ComponentRegistration.KeepAlive do
   def start_link(socket, delimiter, interval) do
-    case(MessageHandler.get_raw_message_from_json("priv/keep_alive.json")) do
-      {:ok, raw_data} ->
-        spawn(fn -> loop(socket, raw_data, delimiter, interval) end)
-      :error ->
-        IO.puts("Error retrieving keep-alive data")
-    end
+    spawn(fn -> loop(socket, delimiter, interval) end)
   end
 
-  defp loop(socket, raw_data, delimiter, interval) do
+  defp loop(socket, delimiter, interval) do
     receive do
       :stop ->
         IO.puts("Stopping keep-alive loop...")
     after
       interval ->
-        data = MessageHandler.add_metadata(raw_data)
-        TCPClient.send_message(socket, data, delimiter)
-        loop(socket, raw_data, delimiter, interval)
+        case(MessageHandler.construct_basic_message("keep_alive")) do
+          {:ok, data} ->
+            TCPClient.send_request(socket, data, delimiter)
+          :error ->
+            IO.puts("Error constructing keep-alive message")
+        end
+
+        loop(socket, delimiter, interval)
     end
   end
 end
