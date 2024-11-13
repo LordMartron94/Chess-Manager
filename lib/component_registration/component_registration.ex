@@ -22,7 +22,13 @@ defmodule ComponentRegistration do
 
     case(MessageHandler.get_full_message_from_json("priv/registration.json")) do
       {:ok, contents} ->
-        TCPClient.send_request(socket, contents, delimiter)
+        case(MessageHandler.insert_component_signature(contents)) do
+          :error ->
+            IO.puts("Error inserting component signature")
+            :error
+          {:ok, full_data} ->
+            TCPClient.send_request(socket, full_data, delimiter)
+        end
 
       :error -> IO.puts("Error reading registration message.")
     end

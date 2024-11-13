@@ -10,8 +10,6 @@ This is a module to process messages.
         handle_shutdown_message(shutdown_listener_pid)
       _ -> IO.puts("Unknown action: #{action}")
     end
-
-    IO.puts("Received message: #{action}")
   end
 
   defp handle_shutdown_message(shutdown_listener_pid) do
