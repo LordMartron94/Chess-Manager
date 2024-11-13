@@ -1,5 +1,5 @@
 {
-  "requester_id": "eae22950-7150-40a8-8f0a-28eb23faf71a",
+  "sender_id": "eae22950-7150-40a8-8f0a-28eb23faf71a",
   "payload": {
     "action": "register",
     "args": [
