@@ -41,21 +41,45 @@ defmodule MessageHandler do
     end
   end
 
-  def construct_basic_message(action) do
+  defp get_default_request() do
     case(JSONHandler.read_json_from_file("priv/default_request.json")) do
       nil ->
         IO.puts("Error reading registration data.")
         :error
       data ->
         added_data = add_metadata(data)
-        payload = %{"action" => action, "args" => nil}
-        final_data = add_payload(added_data, payload)
-        {:ok, final_data}
+        {:ok, added_data}
+    end
+  end
+
+  def construct_basic_message(action) do
+    case(get_default_request()) do
+      :error ->
+        IO.puts("Error constructing basic message.")
+        :error
+      {_, data} ->
+        payload = %Payload{
+          args: [%PayloadArgs{}],
+          action: action
+        }
+        basic_message = add_payload(data, payload)
+        {:ok, basic_message}
     end
   end
 
   defp add_payload(data, payload) do
     Map.put(data, "payload", payload)
+  end
+
+  def construct_advanced_message(payload) do
+    case(get_default_request()) do
+      :error ->
+        IO.puts("Error constructing advanced message.")
+        :error
+      {_, data} ->
+        advanced_message = add_payload(data, payload)
+        advanced_message
+    end
   end
 
   def add_metadata(data) do
