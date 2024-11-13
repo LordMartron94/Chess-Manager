@@ -9,7 +9,7 @@ defmodule ComponentRegistration do
       {:ok, socket} ->
         register_component(socket, delimiter)
         read_loop_pid = spawn(fn -> TCPClient.read_loop(socket, delimiter, shutdown_listener_pid) end)
-        keep_alive_pid = ComponentRegistration.KeepAlive.start_link(socket, delimiter, 5000)
+        keep_alive_pid = ComponentRegistration.KeepAlive.start_link(socket, delimiter, 30000)
         {:ok, keep_alive_pid, read_loop_pid, socket}
       :error ->
         IO.puts("Error connecting.")
