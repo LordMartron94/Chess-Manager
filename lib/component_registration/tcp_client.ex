@@ -10,4 +10,10 @@ defmodule TCPClient do
         :error
     end
   end
+
+  def send_message(socket, data, delimiter) do
+    bytes = JSONHandler.to_bytes(data, delimiter)
+    IO.puts("Sending message: #{bytes}")
+    :gen_tcp.send(socket, bytes)
+    end
 end

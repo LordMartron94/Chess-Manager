@@ -5,12 +5,13 @@ defmodule ChessManager do
 
   def start(_type, _args) do
     IO.puts("Starting ChessManager...")
-    test()
+    ComponentRegistration.register()
+
+    loop()
     {:ok, self()}
   end
 
-  def test() do
-    IO.puts "Testing ChessManager module"
-    ComponentRegistration.register()
+  defp loop do
+    loop()
   end
 end
