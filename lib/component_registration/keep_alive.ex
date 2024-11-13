@@ -9,9 +9,14 @@ defmodule ComponentRegistration.KeepAlive do
   end
 
   defp loop(socket, raw_data, delimiter, interval) do
-    data = MessageHandler.add_metadata(raw_data)
-    TCPClient.send_message(socket, data, delimiter)
-    Process.sleep(interval)
-    loop(socket, raw_data, delimiter, interval)
+    receive do
+      :stop ->
+        IO.puts("Stopping keep-alive loop...")
+    after
+      interval ->
+        data = MessageHandler.add_metadata(raw_data)
+        TCPClient.send_message(socket, data, delimiter)
+        loop(socket, raw_data, delimiter, interval)
+    end
   end
 end

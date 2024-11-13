@@ -2,12 +2,18 @@ defmodule ComponentRegistration do
   @moduledoc """
     This module provides functionality to register this component to the middleman router.
   """
-  def register() do
-    case(TCPClient.start(~c"127.0.0.1", 50000)) do
+  def register(shutdown_listener_pid) do
+    delimiter = "<eom>"
+
+    case(TCPClient.start(~c"127.0.0.1", 50000, shutdown_listener_pid)) do
       {:ok, socket} ->
-        register_component(socket, "<eom>")
-        ComponentRegistration.KeepAlive.start_link(socket, "<eom>", 5000)
-      :error -> IO.puts("Error connecting.")
+        register_component(socket, delimiter)
+        read_loop_pid = spawn(fn -> TCPClient.read_loop(socket, delimiter) end)
+        keep_alive_pid = ComponentRegistration.KeepAlive.start_link(socket, delimiter, 5000)
+        {:ok, keep_alive_pid, read_loop_pid, socket}
+      :error ->
+        IO.puts("Error connecting.")
+        {:error, "There was an error connecting to the client."}
     end
   end
 
@@ -20,5 +26,11 @@ defmodule ComponentRegistration do
 
       :error -> IO.puts("Error reading registration message.")
     end
+  end
+
+  def shutdown(socket, keep_alive_pid, read_loop_pid) do
+    send(keep_alive_pid, :stop)
+    send(read_loop_pid, :stop)
+    TCPClient.close_socket(socket)
   end
 end

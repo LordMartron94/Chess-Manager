@@ -15,7 +15,7 @@ defmodule ChessManager.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {ChessManager, []}
+      mod: {ChessManager.Application, []}
     ]
   end
 

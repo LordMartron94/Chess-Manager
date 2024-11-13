@@ -5,13 +5,23 @@ defmodule ChessManager do
 
   def start(_type, _args) do
     IO.puts("Starting ChessManager...")
-    ComponentRegistration.register()
 
-    loop()
+    case ComponentRegistration.register(self()) do
+      {:ok, keep_alive_pid, read_loop_pid, socket} ->
+        IO.puts("Component registration successful.")
+        listen_for_shutdown_loop(socket, keep_alive_pid, read_loop_pid)
+      {:error, reason} ->
+        IO.puts("Component registration failed: #{reason}")
+        :ok
+    end
+
     {:ok, self()}
   end
 
-  defp loop do
-    loop()
+  defp listen_for_shutdown_loop(socket, keep_alive_pid, read_loop_pid) do
+    receive do
+      :app_shutdown ->
+        ComponentRegistration.shutdown(socket, keep_alive_pid, read_loop_pid)
+    end
   end
 end
