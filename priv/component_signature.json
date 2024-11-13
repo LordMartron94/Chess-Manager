@@ -1,0 +1,11 @@
+[
+  {
+    "name": "get_legal_moves_for_square",
+    "signature": {
+      "num_of_args": 1,
+      "type_of_args": [
+        "string"
+      ]
+    }
+  }
+]

@@ -18,7 +18,6 @@ defmodule TCPClient do
 
   def send_request(socket, request_data, delimiter) do
     bytes = JSONHandler.to_bytes(request_data, delimiter)
-    IO.puts("Sending message: #{bytes}")
     :gen_tcp.send(socket, bytes)
     end
 
@@ -41,8 +40,6 @@ defmodule TCPClient do
         end)
 
         {new_queue, processed_count} = process_messages(new_queue, 0, message_processor, shutdown_listener_pid)
-
-        IO.puts("Processed #{processed_count} new messages.")
 
         read_loop(socket, delimiter, %{buffer: remaining_buffer, queue: new_queue}, message_processor, shutdown_listener_pid)
 

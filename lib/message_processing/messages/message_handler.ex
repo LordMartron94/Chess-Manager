@@ -41,6 +41,19 @@ defmodule MessageHandler do
     end
   end
 
+  def insert_component_signature(data) do
+    case(get_raw_message_from_json("priv/component_signature.json")) do
+      :error ->
+        IO.puts("Error reading component signature.")
+        :error
+      {:ok, signature_data} ->
+        # 4. Append to the message (using the `++` operator to add a single-element list)
+        encoded = Poison.encode!(signature_data)
+        updated_message = update_in(data, ["payload", "args"], &(&1 ++ [%{"type" => "list", "value" => encoded}]))
+        {:ok, updated_message}
+    end
+  end
+
   defp get_default_request() do
     case(JSONHandler.read_json_from_file("priv/default_request.json")) do
       nil ->
